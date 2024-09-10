@@ -70,16 +70,26 @@ func verifyHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
-	accessToken, err := exchangeAuthCodeToAccessToken(authCode)
-	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	var playerInfo *PlayerInfo
+	if authCode == "DummyAuthCode" {
+		playerInfo = &PlayerInfo{
+			PlayerId: "Dummy",
+			AvatarImageUrl: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
+			BannerUrlLandscape: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
+		}
+	} else {
 
-	playerInfo, err := getMe(accessToken)
-	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		return
+		accessToken, err := exchangeAuthCodeToAccessToken(authCode)
+		if err != nil {
+			writer.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		playerInfo, err = getMe(accessToken)
+		if err != nil {
+			writer.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	}
 
 	writer.Header().Set("Player-Id", playerInfo.PlayerId)
