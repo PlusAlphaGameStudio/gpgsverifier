@@ -1,4 +1,4 @@
-module gpgsverifier
+module github.com/gasbank/gpgsverifier
 
 go 1.20
 
