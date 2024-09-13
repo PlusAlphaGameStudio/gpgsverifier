@@ -70,6 +70,19 @@ func verifyHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
+	playerInfo, err := Verify(authCode)
+	if err != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	writer.Header().Set("Player-Id", playerInfo.PlayerId)
+	writer.Header().Set("Avatar-Image-Url", playerInfo.AvatarImageUrl)
+	writer.Header().Set("Banner-Url-Landscape", playerInfo.BannerUrlLandscape)
+	_, _ = writer.Write([]byte("OK"))
+}
+
+func Verify(authCode string) (*PlayerInfo, error) {
 	var playerInfo *PlayerInfo
 	if authCode == "DummyAuthCode" {
 		playerInfo = &PlayerInfo{
@@ -77,25 +90,21 @@ func verifyHandler(writer http.ResponseWriter, request *http.Request) {
 			AvatarImageUrl: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
 			BannerUrlLandscape: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
 		}
+		return playerInfo, nil
 	} else {
 
 		accessToken, err := exchangeAuthCodeToAccessToken(authCode)
 		if err != nil {
-			writer.WriteHeader(http.StatusBadRequest)
-			return
+			return nil, err
 		}
 
 		playerInfo, err = getMe(accessToken)
 		if err != nil {
-			writer.WriteHeader(http.StatusBadRequest)
-			return
+			return nil, err
 		}
-	}
 
-	writer.Header().Set("Player-Id", playerInfo.PlayerId)
-	writer.Header().Set("Avatar-Image-Url", playerInfo.AvatarImageUrl)
-	writer.Header().Set("Banner-Url-Landscape", playerInfo.BannerUrlLandscape)
-	_, _ = writer.Write([]byte("OK"))
+		return playerInfo, nil
+	}
 }
 
 func exchangeAuthCodeToAccessToken(authCode string) (string, error) {
